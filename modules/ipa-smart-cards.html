@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Practical PKI - Smart cards and workstation login</title>
+        <link rel="stylesheet" href="../css/default.css">
+        <script src="../js/copy-button.js"></script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Practical PKI</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <div id="postContent">
+    <h1 id="smart-cards-and-workstation-login">Smart cards and workstation login</h1>
+<p><em>Smart cards</em> are cryptographic devices that can securely store keys
+and certificates to enable a variety of authentication and
+encryption applications. Common use cases include:</p>
+<ul>
+<li>Physical access badges</li>
+<li>Workstation login (maybe you’ve seen this at a bank)</li>
+<li>Storing OpenPGP or SSH keys</li>
+</ul>
+<p>Smart cards use a variety of physical interfaces including USB, NFC,
+and the classic plastic card with contact pad. TPMs and smartphone
+<em>secure elements</em> can also be configured as smart cards. The <strong>PKCS
+#11</strong> standard provides a common interface to access smart card
+cryptographic operations, including key generation and signing. The
+principle is that keys cannot be extracted from the hardware.</p>
+<div class="note">
+<p>Software implementations are also possible, but offer none of the
+physical security benefits.</p>
+</div>
+<p>In this module you will configure a <em>software</em> smart card token and
+walk through some real world scenarios:</p>
+<ul>
+<li>Generate a key on the token and sign a CSR</li>
+<li>Install the issued certificate on the device</li>
+<li>Configure a FreeIPA domain for smart card authentication</li>
+<li>Authenticate to Kerberos using the smart card</li>
+<li>Configure a workstation for smart card based login</li>
+<li>Set up <em>GNOME Remote Desktop</em> to enable remote graphical login</li>
+</ul>
+<div class="note">
+<p>Most activities in this module are to be performed on
+<code>client.$DOMAIN</code>. SSH into this machine now.</p>
+<p><strong>You will also need an RDP client to perform the graphical
+workstation login.</strong> You can still do most of the activities
+without it, but you will miss out on some of the payoff.</p>
+</div>
+<h2 id="setting-up-the-smart-card">Setting up the smart card <a href="#setting-up-the-smart-card" class="section">§</a></h2>
+<p>The exact commands for initialising and configuring a smart card
+differ by vendor. In this workshop we are using the <em>SoftHSM</em>
+software token implementation. Because it is not a physical device,
+SoftHSM is <strong>not recommended for real world use</strong>. But it is
+perfect for developing an understanding of the general procedure
+required to use smart cards for X.509 applications.</p>
+<p>The first step is to create a token. This is the only
+SoftHSM-specific operation. Later steps will use the PKCS #11
+interface to interact with the token.</p>
+<pre class="command client"><code>sudo softhsm2-util --init-token --slot 0 \
+  --label &quot;FakeSmartCard&quot; \
+  --pin 1234 \
+  --so-pin 5678</code></pre>
+<pre class="output"><code>The token has been initialized and is reassigned to slot 2017281153</code></pre>
+<p><code>--label</code> gives a human-friendly name for the token. <code>--pin</code> and
+<code>--so-pin</code> set the codes for user and administrator access to the
+token.</p>
+<h3 id="generate-key-pair-and-csr">Generate key pair and CSR <a href="#generate-key-pair-and-csr" class="section">§</a></h3>
+<p>Now generate a private key (in this case, a NIST P-384 ECC key):</p>
+<pre class="command client"><code>sudo p11-kit generate-keypair \
+    pkcs11:token=FakeSmartCard --login \
+    --type=ecdsa --curve=secp384r1 \
+    --label ipa-key --id deadbeef</code></pre>
+<pre class="output"><code>PIN for FakeSmartCard:</code></pre>
+<p>List objects and retrieve the PKCS #11 URI of the key:</p>
+<pre class="command client"><code>sudo p11-kit list-objects pkcs11:token=FakeSmartCard</code></pre>
+<pre class="output"><code>Object: #0
+    uri: pkcs11:model=SoftHSM%20v2;manufacturer=SoftHSM%20project;serial=7c3fca5af83d4481;token=FakeSmartCard;id=%DE%AD%BE%EF;object=ipa-key;type=public
+    class: public-key
+    key-type: ec
+    label: ipa-key
+    id: de:ad:be:ef
+    flags:
+          local
+          token
+          modifiable
+          copyable
+          destroyable</code></pre>
+<p>The <code>uri</code> field in the output gives the PKCS #11 URI that refers to
+the new key on this specific token. Save its value; you will need
+it in the next step. <strong>Make sure you surround the value in quotes
+(<code>"..."</code>).</strong></p>
+<pre class="command client no-copy"><code>PKCS11_URI=&quot;pkcs11:model=…;object=ipa-key;type=public&quot;</code></pre>
+<p>Now create the CSR. <strong>OpenSSL will prompt for the user PIN</strong> you
+set when creating the token.</p>
+<pre class="command client"><code>sudo openssl req -new \
+  -engine pkcs11 -keyform engine -key $PKCS11_URI \
+  -config user_csr.cnf -out softhsm-user.csr</code></pre>
+<pre class="output"><code>Engine &quot;pkcs11&quot; set.
+Enter PKCS#11 token PIN for FakeSmartCard:</code></pre>
+<div class="note">
+<p>The OpenSSL PKCS #11 engine is provided by the <code>openssl-pkcs11</code> RPM
+package on Fedora and RHEL. Other distributions might use a
+different package name.</p>
+</div>
+<h3 id="request-user-certificate-and-import-into-smart-card">Request user certificate and import into smart card <a href="#request-user-certificate-and-import-into-smart-card" class="section">§</a></h3>
+<p>Perform a <em>self-service</em> certificate request. If you are not
+already authenticated as <code>user1</code>, do so now:</p>
+<pre class="command client"><code>echo Secret.123 | kinit user1</code></pre>
+<p>Now request the certificate from the CA. Given the context, this
+could also be called <em>enrolling</em> the smart card.</p>
+<pre class="command client"><code>ipa cert-request softhsm-user.csr \
+    --profile-id userCert \
+    --principal user1 \
+    --certificate-out softhsm-user.crt</code></pre>
+<pre class="output"><code>  Issuing CA: ipa
+  Certificate: MIIEJjCCAo6gAwIBAgIQRmeQcXH3o/...
+  Subject: CN=user1,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  Subject email address: user1@e1.cz2026.workshop.freeipa.org
+  Issuer: CN=Certificate Authority,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  Not Before: Wed Jan 07 08:00:16 2026 UTC
+  Not After: Sat Jan 08 08:00:16 2028 UTC
+  Serial number: 93583695936409673461838374248291191549
+  Serial number (hex): 0x4667907171F7A3FADA78A182C4EF4AFD
+  Request status: complete</code></pre>
+<p>Finally, import the certificate into the token:</p>
+<pre class="command client"><code>sudo p11-kit import-object pkcs11:token=FakeSmartCard \
+  --file softhsm-user.crt \
+  --label ipa-key --id deadbeef</code></pre>
+<h2 id="enable-smart-card-authentication-for-freeipa-users">Enable smart card authentication for FreeIPA users <a href="#enable-smart-card-authentication-for-freeipa-users" class="section">§</a></h2>
+<p>Smart card authentication requires setting a filter to control which
+certificates are eligible to be matched against domain accounts.
+<strong>SSSD will always verify the certificate and ensure it chains up to
+a trusted CA</strong>. But these match rules provide an additional filter
+that can be used to further restrict certificate authentication.
+This is often used to ensure that only particular issuers are used.</p>
+<p>Let’s just add a rule that accepts (valid) certificates from all
+issuers (but first become <code>admin</code>).</p>
+<pre class="command client"><code>echo Secret.123 | kinit admin</code></pre>
+<pre class="command client"><code>ipa certmaprule-add all-issuers \
+    --matchrule '&lt;ISSUER&gt;.*'</code></pre>
+<pre class="output"><code>-----------------------------------------------------
+Added Certificate Identity Mapping Rule &quot;all-issuers&quot;
+-----------------------------------------------------
+  Rule name: all-issuers
+  Matching rule: &lt;ISSUER&gt;.*
+  Enabled: True</code></pre>
+<p>In addition to the <em>match rule</em>, <strong><em>mapping rules</em></strong> are important
+in some real world scenarios. For example: when smart cards are
+issued by a trusted third party, and you do not even see the
+certificate until it is presented during login. Or when certificate
+lifetimes are so short that managing the <code>userCertificate</code>
+attributes would be burdensome.</p>
+<p>In such cases, the mapping rule lets you use information from the
+certificate to match a user. For example, the following rule
+<strong>maps</strong> email address values in the <em>Subject Alternative Name</em>
+extension to the user’s <code>mail</code> attribute, but only when the
+certificate issuer <strong>matches</strong> <code>O=Example Org</code>:</p>
+<pre class="command no-copy"><code>ipa certmaprule-add email-mapping-EXAMPLE-RULE \
+    --matchrule=&quot;&lt;ISSUER&gt;O=Example Org&quot; \
+    --maprule=&quot;(mail={san_rfc822name})&quot;</code></pre>
+<h2 id="explicit-kerberos-authentication-with-smart-card">Explicit Kerberos authentication with smart card <a href="#explicit-kerberos-authentication-with-smart-card" class="section">§</a></h2>
+<p>Now that the match rule has been created and the smart card is
+ready, you can perform a Kerberos initial authentication. Enter the
+PIN when <code>kinit</code> prompts for it.</p>
+<pre class="command client"><code>sudo kinit user1 \
+     -X X509_user_identity=PKCS11:libsofthsm2.so</code></pre>
+<pre class="output"><code>FakeSmartCard                    PIN:</code></pre>
+<p>Run <code>klist</code> to observe that the authentication succeeded:</p>
+<pre class="command client"><code>sudo klist</code></pre>
+<pre class="output"><code>Ticket cache: KCM:0
+Default principal: user1@E1.CZ2026.WORKSHOP.FREEIPA.ORG
+
+Valid starting       Expires              Service principal
+01/18/2026 13:29:42  01/19/2026 12:35:00  krbtgt/E1.CZ2026.WORKSHOP.FREEIPA.ORG@E1.CZ2026.WORKSHOP.FREEIPA.ORG</code></pre>
+<p>The explicit <code>kinit</code> is useful to verify the smart card is working
+and Kerberos PKINIT is set up correctly.</p>
+<h2 id="enable-smart-card-workstation-login">Enable smart card workstation login <a href="#enable-smart-card-workstation-login" class="section">§</a></h2>
+<p>It is awkward for human users to authenticate using the <code>kinit</code>
+command. Obtaining the TGT during a smart card based workstation
+login would be much nicer. Let’s set that up now!</p>
+<h3 id="make-the-token-accessible-to-sssd">Make the token accessible to SSSD <a href="#make-the-token-accessible-to-sssd" class="section">§</a></h3>
+<div class="note">
+<p>We are about to make the SoftHSM token usable by all users on the
+system. This is needed because of how SSSD operates. <strong>Never</strong> do
+something like this in a real world setting!</p>
+<p>Real hardware smart cards use the <a href="https://github.com/OpenSC/OpenSC/wiki">OpenSC</a> system and
+don’t need these hacks.</p>
+</div>
+<p>Change the ownership of all the data to <code>sssd</code> user and group:</p>
+<pre class="command client"><code>sudo chown -R sssd:sssd /var/lib/softhsm/tokens</code></pre>
+<p>Grant all users access to the token:</p>
+<pre class="command client"><code>sudo chmod -R a+rX /var/lib/softhsm</code></pre>
+<p>One more thing: PKCS #11 tokens have a flag that indicates whether
+the device is <strong>removable</strong> or not. SSSD unconditionally ignores
+non-removable tokens. Fortunately, we can configure SoftHSM to make
+it pretend that its tokens are removable.</p>
+<p>Edit <code>/etc/softhsm2.conf</code>. Change the line that says:</p>
+<pre><code>slots.removable = false</code></pre>
+<p>to say:</p>
+<pre><code>slots.removable = true</code></pre>
+<h3 id="enable-smart-card-login-in-sssd-and-gdm">Enable smart card login in SSSD and GDM <a href="#enable-smart-card-login-in-sssd-and-gdm" class="section">§</a></h3>
+<p>Use <code>authselect</code> to configure the PAM stack to enable smart card
+login:</p>
+<pre class="command client"><code>sudo authselect enable-feature with-smartcard</code></pre>
+<pre class="output"><code>Make sure that SSSD service is configured and enabled.
+See SSSD documentation for more information.
+
+- with-smartcard is selected, make sure smartcard authentication
+  is enabled in sssd.conf:
+  - set &quot;pam_cert_auth = True&quot; in [pam] section</code></pre>
+<p>As the command output suggests, you must also edit
+<code>/etc/sssd/sssd.conf</code> to enable SSSD to look up user certificates.
+The <code>[pam]</code> section must look like:</p>
+<pre><code>[pam]
+pam_cert_auth = True</code></pre>
+<p>SSSD also needs to know what CAs are trusted for user login. By
+default, SSSD looks at <code>/etc/sssd/pki/sssd_auth_ca_db.pem</code>. Use a
+symlink to point that location the FreeIPA CA trust store:</p>
+<pre class="command client"><code>sudo ln -s /etc/ipa/ca.crt \
+    /etc/sssd/pki/sssd_auth_ca_db.pem</code></pre>
+<p>Now restart SSSD:</p>
+<pre class="command client"><code>sudo systemctl restart sssd</code></pre>
+<h2 id="enable-graphical-login-via-rdp">Enable graphical login via RDP <a href="#enable-graphical-login-via-rdp" class="section">§</a></h2>
+<p>To simulate a workstation smart card login experience, we will
+enable <a href="https://en.wikipedia.org/wiki/Remote_Desktop_Protocol"><em>Remote Desktop Protocol (RDP)</em></a> login, using
+<strong><em>GNOME Remote Desktop</em></strong>.</p>
+<p>RDP uses TLS to secure the traffic between client and server.
+Recall that we already requested a suitable certificate in the
+<em>Certmonger</em> module! Configure GNOME Remote Desktop to use the
+Certmonger-managed key and certificate:</p>
+<pre class="command client"><code>sudo grdctl --system rdp \
+  set-tls-key  /etc/pki/tls/private/rdp.key</code></pre>
+<pre class="command client"><code>sudo grdctl --system rdp \
+  set-tls-cert /etc/pki/tls/certs/rdp.crt</code></pre>
+<div class="note">
+<p>You can ignore error messages that mention TPM credentials.</p>
+</div>
+<p>Configure an RDP username and password. These credentials are
+unrelated to FreeIPA or system accounts.</p>
+<pre class="command client"><code>sudo grdctl --system rdp \
+  set-credentials rdp hunter2</code></pre>
+<p>Enable the RDP service:</p>
+<pre class="command client"><code>sudo grdctl --system rdp enable</code></pre>
+<p>And finally, restart GNOME Remote Desktop to pick up the new
+configuration.</p>
+<pre class="command client"><code>sudo systemctl restart gnome-remote-desktop</code></pre>
+<h2 id="bringing-it-all-together">Bringing it all together <a href="#bringing-it-all-together" class="section">§</a></h2>
+<div class="note">
+<p>You need an RDP client on your local machine for these final steps.</p>
+</div>
+<p>Use your RDP client to connect to <code>client.e$N.cz2026.workshop.freeipa.org</code>.
+You may need to prefix the domain name with <code>rdp://</code>. The TCP port
+is <code>3389</code>.</p>
+<p>You may need to accept the server’s certificate—which you issued and
+configured!</p>
+<p>Authenticate the RDP session with the RDP username and password
+(<code>rdp</code>:<code>hunter2</code>). If there is a <em>Domain</em> field, leave it blank.</p>
+<p>The GDM login screen will greet you. It will prompt you for the
+smart card pin. Enter the PIN and log in. Then open the <em>Terminal</em>
+app and run <code>klist</code>. You will see that the user obtained a Kerberos
+TGT during login.</p>
+<p>All done! You can log out and close your RDP client.</p>
+</div>
+<div id="nav" class="footer">
+    
+    <div class="back">
+        <a href="ipa-profiles.html">FreeIPA certificate profiles and user certificates</a>
+    </div>
+    
+    
+    <div class="up">
+        <a href="../index.html#toc">Up to index</a>
+    </div>
+    
+    
+    <div class="next">
+        <a href="ipa-external-ca.html">Externally signing the FreeIPA CA</a>
+    </div>
+    
+</div>
+
+        </div>
+
+        <div class="footer">
+
+<div id="license">
+    <div style="float: left">
+        <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
+            <img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/88x31.png">
+        </a>
+    </div>
+    <div>
+        <p>
+        Except where otherwise noted, this work is licensed under a
+        <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
+            Creative Commons Attribution 4.0 International License</a>.
+        </p>
+    </div>
+</div>
+
+<div id="hakyll">
+    Generated by
+    <a href="https://jaspervdj.be/hakyll">Hakyll</a>
+</div>
+
+        </div>
+    </body>
+</html>
