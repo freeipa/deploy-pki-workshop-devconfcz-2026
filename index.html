@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - Start</title>
+        <title>Practical PKI - DevConf.CZ 2026 - Start</title>
         <link rel="stylesheet" href="./css/default.css">
         <script src="./js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="./">Practical PKI</a>
+                <a href="./">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="./">Home</a>
@@ -94,7 +94,8 @@ Download it and provide it to your SSH client. Then you can log
 into any of the machines in your environment, using the <code>fedora</code>
 user account.</p>
 <p>If you use OpenSSH, the login command is:</p>
-<pre class="command"><code>ssh -i path/to/key.pem fedora@client.e$N.cz2026.workshop.freeipa.org</code></pre>
+<pre class="command"><code>ssh -i path/to/key.pem \
+    fedora@client.e$N.cz2026.workshop.freeipa.org</code></pre>
 <p>You will need to change the permissions on the key file:</p>
 <pre class="command no-copy"><code>chmod 600 path/to/key.pem</code></pre>
 <p>Accept the host key prompt and log in.</p>
