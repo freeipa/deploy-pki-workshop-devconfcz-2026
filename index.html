@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - TODO.CONF 2026 - Start</title>
+        <title>Practical PKI - DevConf.CZ 2026 - Start</title>
         <link rel="stylesheet" href="./css/default.css">
         <script src="./js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="./">Practical PKI — TODO.CONF 2026</a>
+                <a href="./">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="./">Home</a>
@@ -71,20 +71,20 @@ the modules in order</strong>.</p>
 <h2 id="your-unique-workshop-environment">Your unique workshop environment</h2>
 <p>You will have received a card bearing your participant number and
 some access details. Your workshop environment is hosted under the
-domain <code>e$N.pki.example.com</code> (where <code>$N</code> is your particpant number).</p>
+domain <code>e$N.cz2026.workshop.freeipa.org</code> (where <code>$N</code> is your particpant number).</p>
 <p>Throughout the curriculum, the variable <code>$DOMAIN</code> refers to your
 environment’s domain.</p>
 <p>There are several machines in the environment:</p>
 <ul>
-<li><code>ipa.e$N.pki.example.com</code> - the FreeIPA server</li>
-<li><code>client.e$N.pki.example.com</code> - an enrolled client machine</li>
-<li><code>web.e$N.pki.example.com</code> - a web server</li>
+<li><code>ipa.e$N.cz2026.workshop.freeipa.org</code> - the FreeIPA server</li>
+<li><code>client.e$N.cz2026.workshop.freeipa.org</code> - an enrolled client machine</li>
+<li><code>web.e$N.cz2026.workshop.freeipa.org</code> - a web server</li>
 </ul>
 <h3 id="environment-variables">Environment variables</h3>
 <p>On all three machines, login shells will automatically set the
 <code>DOMAIN</code> and <code>REALM</code> environment variables. For example:</p>
-<pre><code>export DOMAIN=e17.pki.example.com
-export REALM=E17.PKI.EXAMPLE.COM</code></pre>
+<pre><code>export DOMAIN=e17.cz2026.workshop.freeipa.org
+export REALM=E17.CZ2026.WORKSHOP.FREEIPA.ORG</code></pre>
 <p>You might also find it convenient to set these variables in your
 shell session on your local machine.</p>
 <h3 id="accessing-the-environment">Accessing the environment</h3>
@@ -95,7 +95,7 @@ into any of the machines in your environment, using the <code>fedora</code>
 user account.</p>
 <p>If you use OpenSSH, the login command is:</p>
 <pre class="command"><code>ssh -i path/to/key.pem \
-    fedora@client.e$N.pki.example.com</code></pre>
+    fedora@client.e$N.cz2026.workshop.freeipa.org</code></pre>
 <p>You will need to change the permissions on the key file:</p>
 <pre class="command no-copy"><code>chmod 600 path/to/key.pem</code></pre>
 <p>Accept the host key prompt and log in.</p>

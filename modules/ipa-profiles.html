@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - TODO.CONF 2026 - FreeIPA certificate profiles</title>
+        <title>Practical PKI - DevConf.CZ 2026 - FreeIPA certificate profiles</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — TODO.CONF 2026</a>
+                <a href="../">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -211,20 +211,20 @@ ACLs. Switch to the <code>user1</code> account and perform a <em>self-service</e
 certificate request. Self-service requests are allowed, subject to
 CA ACLs.</p>
 <pre class="command client"><code>echo Secret.123 | kinit user1</code></pre>
-<pre class="output"><code>Password for user1@E1.PKI.EXAMPLE.COM:</code></pre>
+<pre class="output"><code>Password for user1@E1.CZ2026.WORKSHOP.FREEIPA.ORG:</code></pre>
 </div>
 <pre class="command client"><code>ipa cert-request user.csr \
     --profile-id userCert \
     --principal user1 \
     --certificate-out user.crt</code></pre>
 <pre class="output"><code>ipa: ERROR: Insufficient access: Principal
-  'user1@E1.PKI.EXAMPLE.COM' is not permitted to use CA
+  'user1@E1.CZ2026.WORKSHOP.FREEIPA.ORG' is not permitted to use CA
   'ipa' with profile 'userCert' for certificate issuance.</code></pre>
 <h2 id="add-user-to-the-sclogin-group">Add user to the <code>sclogin</code> group <a href="#add-user-to-the-sclogin-group" class="section">§</a></h2>
 <p><code>kinit</code> as <code>admin</code> once more, and add <code>user1</code> to the <code>sclogin</code> user
 group:</p>
 <pre class="command client"><code>echo Secret.123 | kinit admin</code></pre>
-<pre class="output"><code>Password for admin@E1.PKI.EXAMPLE.COM:</code></pre>
+<pre class="output"><code>Password for admin@E1.CZ2026.WORKSHOP.FREEIPA.ORG:</code></pre>
 <pre class="command client"><code>ipa group-add-member sclogin --users user1</code></pre>
 <pre class="output"><code>  Group name: sclogin
   GID: 1789600004

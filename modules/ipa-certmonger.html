@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - TODO.CONF 2026 - Service certificates with FreeIPA and Certmonger</title>
+        <title>Practical PKI - DevConf.CZ 2026 - Service certificates with FreeIPA and Certmonger</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — TODO.CONF 2026</a>
+                <a href="../">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -43,20 +43,20 @@ Authenticate as user <code>user1</code> (initial password = <code>Secret.123</co
 will be prompted to set a new password when authenticating for the
 first time (you can use the same password).</p>
 <pre class="command client"><code>kinit user1</code></pre>
-<pre class="output"><code>Password for user1@E1.PKI.EXAMPLE.COM:
+<pre class="output"><code>Password for user1@E1.CZ2026.WORKSHOP.FREEIPA.ORG:
 Password expired.  You must change it now.
 Enter new password:
 Enter it again:</code></pre>
 <pre class="command client"><code>ipa host-show $(hostname)</code></pre>
-<pre class="output"><code>  Host name: client.e1.pki.example.com
+<pre class="output"><code>  Host name: client.e1.cz2026.workshop.freeipa.org
   Platform: x86_64
   Operating system: 6.17.1-300.fc43.x86_64
-  Principal name: host/client.e1.pki.example.com@E1.PKI.EXAMPLE.COM
-  Principal alias: host/client.e1.pki.example.com@E1.PKI.EXAMPLE.COM
+  Principal name: host/client.e1.cz2026.workshop.freeipa.org@E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  Principal alias: host/client.e1.cz2026.workshop.freeipa.org@E1.CZ2026.WORKSHOP.FREEIPA.ORG
   SSH public key fingerprint: ...
   Password: False
   Keytab: True
-  Managed by: client.e1.pki.example.com</code></pre>
+  Managed by: client.e1.cz2026.workshop.freeipa.org</code></pre>
 <p>(Some details elided. Also, your domain and realm names will differ
 from the above).</p>
 <p>For the user certificate, you will submit the <code>user.csr</code> you created
@@ -135,12 +135,12 @@ Request ID '{TRACKING_ID}':
   key pair storage: type=FILE,location='/etc/pki/tls/private/rdp.key',owner=gnome-remote-desktop
   certificate: type=FILE,location='/etc/pki/tls/certs/rdp.crt',owner=gnome-remote-desktop
   CA: IPA
-  issuer: CN=Certificate Authority,O=E1.PKI.EXAMPLE.COM
-  subject: CN=client.e1.pki.example.com,O=E1.PKI.EXAMPLE.COM
+  issuer: CN=Certificate Authority,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  subject: CN=client.e1.cz2026.workshop.freeipa.org,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
   issued: 2026-01-20 05:21:36 UTC
   expires: 2028-01-21 05:21:36 UTC
-  dns: client.e1.pki.example.com
-  principal name: host/client.e1.pki.example.com@E1.PKI.EXAMPLE.COM
+  dns: client.e1.cz2026.workshop.freeipa.org
+  principal name: host/client.e1.cz2026.workshop.freeipa.org@E1.CZ2026.WORKSHOP.FREEIPA.ORG
   key usage: digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
   eku: id-kp-serverAuth,id-kp-clientAuth
   pre-save command:
@@ -158,20 +158,20 @@ close to expiring.</li>
 detail: it is in the LDAP <code>userCertificate</code> attribute). It now
 appears in the <code>ipa host-show</code> output:</p>
 <pre class="command client"><code>ipa host-show $(hostname)</code></pre>
-<pre class="output"><code>  Host name: client.e1.pki.example.com
+<pre class="output"><code>  Host name: client.e1.cz2026.workshop.freeipa.org
   Platform: x86_64
   Operating system: 6.17.12-300.fc43.x86_64
   Certificate: MIIFgTCCA+mgAwIBAgIRAP... (it's big!)
-  Subject: CN=client.e1.pki.example.com,O=E1.PKI.EXAMPLE.COM
+  Subject: CN=client.e1.cz2026.workshop.freeipa.org,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
   Serial Number: 326888291098119664476505843178022846962
   Serial Number (hex): 0xF5EC65138C8B0C34BAD0B112CE0B41F2
-  Issuer: CN=Certificate Authority,O=E1.PKI.EXAMPLE.COM
+  Issuer: CN=Certificate Authority,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
   Not Before: Tue Jan 20 05:21:36 2026 UTC
   Not After: Fri Jan 21 05:21:36 2028 UTC
   Fingerprint (SHA1): 55:89:0e:58:cc:ca:7a:10:5f:ad:5f:92:df:66:1b:06:16:be:92:26
   Fingerprint (SHA256): 8d:b8:0f:e2:de:d6:f7:aa:8c:ef:93:63:b4:7c:2d:a4:38:d2:cf:c2:39:94:42:fc:0e:e8:0a:0d:16:e5:15:81
-  Principal name: host/client.e1.pki.example.com@E1.PKI.EXAMPLE.COM
-  Principal alias: host/client.e1.pki.example.com@E1.PKI.EXAMPLE.COM
+  Principal name: host/client.e1.cz2026.workshop.freeipa.org@E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  Principal alias: host/client.e1.cz2026.workshop.freeipa.org@E1.CZ2026.WORKSHOP.FREEIPA.ORG
   ...</code></pre>
 <h2 id="what-is-actually-happening">What is actually happening? <a href="#what-is-actually-happening" class="section">§</a></h2>
 <p>Under the hood, Certmonger uses the <em>host keytab</em> (acquired upon

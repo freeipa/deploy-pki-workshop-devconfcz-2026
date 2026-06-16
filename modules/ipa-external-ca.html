@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - TODO.CONF 2026 - Externally signing the FreeIPA CA</title>
+        <title>Practical PKI - DevConf.CZ 2026 - Externally signing the FreeIPA CA</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — TODO.CONF 2026</a>
+                <a href="../">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -73,7 +73,7 @@ sign the CSR:</p>
     -days 740 \
     -out ipa-new.crt</code></pre>
 <pre class="output"><code>Certificate request self-signature ok
-subject=O=E1.PKI.EXAMPLE.COM, CN=Certificate Authority</code></pre>
+subject=O=E1.CZ2026.WORKSHOP.FREEIPA.ORG, CN=Certificate Authority</code></pre>
 <h2 id="completing-the-renewal">Completing the renewal <a href="#completing-the-renewal" class="section">§</a></h2>
 <p>Run <code>ipa-cacert-manage renew</code> again, and point it to the issued
 certificate, as well as the external issuer certificate:</p>
@@ -100,8 +100,8 @@ The ipa-certupdate command was successful</code></pre>
 signed by the external CA:</p>
 <pre class="command ipa"><code>echo Secret.123 | kinit admin</code></pre>
 <pre class="command ipa"><code>ipa ca-show ipa --raw |grep dn</code></pre>
-<pre class="output"><code>  ipacasubjectdn: CN=Certificate Authority,O=E1.PKI.EXAMPLE.COM
-  ipacaissuerdn: O=PKI.EXAMPLE.COM,CN=PKI Workshop CA</code></pre>
+<pre class="output"><code>  ipacasubjectdn: CN=Certificate Authority,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  ipacaissuerdn: O=CZ2026.WORKSHOP.FREEIPA.ORG,CN=PKI Workshop CA</code></pre>
 <div class="note">
 <p>You have completed the exercises for this module. The sections that
 follow are informational.</p>

@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - TODO.CONF 2026 - Smart cards and workstation login</title>
+        <title>Practical PKI - DevConf.CZ 2026 - Smart cards and workstation login</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — TODO.CONF 2026</a>
+                <a href="../">Practical PKI — DevConf.CZ 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -123,9 +123,9 @@ could also be called <em>enrolling</em> the smart card.</p>
     --certificate-out softhsm-user.crt</code></pre>
 <pre class="output"><code>  Issuing CA: ipa
   Certificate: MIIEJjCCAo6gAwIBAgIQRmeQcXH3o/...
-  Subject: CN=user1,O=E1.PKI.EXAMPLE.COM
-  Subject email address: user1@e1.pki.example.com
-  Issuer: CN=Certificate Authority,O=E1.PKI.EXAMPLE.COM
+  Subject: CN=user1,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
+  Subject email address: user1@e1.cz2026.workshop.freeipa.org
+  Issuer: CN=Certificate Authority,O=E1.CZ2026.WORKSHOP.FREEIPA.ORG
   Not Before: Wed Jan 07 08:00:16 2026 UTC
   Not After: Sat Jan 08 08:00:16 2028 UTC
   Serial number: 93583695936409673461838374248291191549
@@ -177,10 +177,10 @@ PIN when <code>kinit</code> prompts for it.</p>
 <p>Run <code>klist</code> to observe that the authentication succeeded:</p>
 <pre class="command client"><code>sudo klist</code></pre>
 <pre class="output"><code>Ticket cache: KCM:0
-Default principal: user1@E1.PKI.EXAMPLE.COM
+Default principal: user1@E1.CZ2026.WORKSHOP.FREEIPA.ORG
 
 Valid starting       Expires              Service principal
-01/18/2026 13:29:42  01/19/2026 12:35:00  krbtgt/E1.PKI.EXAMPLE.COM@E1.PKI.EXAMPLE.COM</code></pre>
+01/18/2026 13:29:42  01/19/2026 12:35:00  krbtgt/E1.CZ2026.WORKSHOP.FREEIPA.ORG@E1.CZ2026.WORKSHOP.FREEIPA.ORG</code></pre>
 <p>The explicit <code>kinit</code> is useful to verify the smart card is working
 and Kerberos PKINIT is set up correctly.</p>
 <h2 id="enable-smart-card-workstation-login">Enable smart card workstation login <a href="#enable-smart-card-workstation-login" class="section">§</a></h2>
@@ -257,7 +257,7 @@ configuration.</p>
 <div class="note">
 <p>You need an RDP client on your local machine for these final steps.</p>
 </div>
-<p>Use your RDP client to connect to <code>client.e$N.pki.example.com</code>.
+<p>Use your RDP client to connect to <code>client.e$N.cz2026.workshop.freeipa.org</code>.
 You may need to prefix the domain name with <code>rdp://</code>. The TCP port
 is <code>3389</code>.</p>
 <p>You may need to accept the server’s certificate—which you issued and
