@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - DevConf.CZ 2026 - The FreeIPA ACME server</title>
+        <title>Practical PKI - TODO.CONF 2026 - The FreeIPA ACME server</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — DevConf.CZ 2026</a>
+                <a href="../">Practical PKI — TODO.CONF 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -121,11 +121,11 @@ name, using the <code>--standalone</code> HTTP server.</p>
   --key-type rsa \
   --domain $(hostname)</code></pre>
 <pre class="output"><code>Saving debug log to /home/fedora/certbot/logs/letsencrypt.log
-Requesting a certificate for client.e1.cz2026.workshop.freeipa.org
+Requesting a certificate for client.e1.pki.example.com
 
 Successfully received certificate.
-Certificate is saved at: /home/fedora/certbot/config/live/client.e1.cz2026.workshop.freeipa.org/fullchain.pem
-Key is saved at:         /home/fedora/certbot/config/live/client.e1.cz2026.workshop.freeipa.org/privkey.pem
+Certificate is saved at: /home/fedora/certbot/config/live/client.e1.pki.example.com/fullchain.pem
+Key is saved at:         /home/fedora/certbot/config/live/client.e1.pki.example.com/privkey.pem
 This certificate expires on 2026-04-20.
 These files will be updated when the certificate renews.
 Certbot has set up a scheduled task to automatically renew this certificate in the background.
@@ -138,7 +138,7 @@ If you like Certbot, please consider supporting our work by:
 <p>Inspect the certificate issuer:</p>
 <pre class="command client"><code>openssl x509 -issuer -noout \
   -in ~/certbot/config/live/$(hostname)/fullchain.pem</code></pre>
-<pre class="output"><code>issuer=O=E1.CZ2026.WORKSHOP.FREEIPA.ORG, CN=Certificate Authority</code></pre>
+<pre class="output"><code>issuer=O=E1.PKI.EXAMPLE.COM, CN=Certificate Authority</code></pre>
 <p>Indeed we see that the FreeIPA CA issued this certificate!</p>
 </div>
 <div id="nav" class="footer">

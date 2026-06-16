@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Practical PKI - DevConf.CZ 2026 - ACME - Apache and mod_md</title>
+        <title>Practical PKI - TODO.CONF 2026 - ACME - Apache and mod_md</title>
         <link rel="stylesheet" href="../css/default.css">
         <script src="../js/copy-button.js"></script>
     </head>
     <body>
         <div id="header">
             <div id="logo">
-                <a href="../">Practical PKI — DevConf.CZ 2026</a>
+                <a href="../">Practical PKI — TODO.CONF 2026</a>
             </div>
             <div id="navigation">
                 <a href="../">Home</a>
@@ -26,7 +26,7 @@ publicly-trusted CA.</p>
 <div class="note">
 <p>All steps in this module are to be performed on <code>web.$DOMAIN</code>.
 SSH into this machine now:</p>
-<pre><code>ssh -i path/to/key.pem fedora@web.e$N.cz2026.workshop.freeipa.org</code></pre>
+<pre><code>ssh -i path/to/key.pem fedora@web.e$N.pki.example.com</code></pre>
 </div>
 <h2 id="start-the-server">Start the server <a href="#start-the-server" class="section">§</a></h2>
 <pre class="command web"><code>sudo systemctl enable --now httpd</code></pre>
@@ -43,17 +43,17 @@ connection issues:</p>
     -verify_return_error</code></pre>
 <pre class="output"><code>Connecting to fe80::85d:bbff:feda:7911%ens5
 CONNECTED(00000003)
-depth=1 C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.cz2026.workshop.freeipa.org
+depth=1 C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.pki.example.com
 verify error:num=19:self-signed certificate in certificate chain
 C0D265F5407F0000:error:0A000086:SSL routines:tls_post_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:2123:
 ---
 Certificate chain
- 0 s:C=US, O=Unspecified, CN=web, emailAddress=root@web.e2.cz2026.workshop.freeipa.org
-   i:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.cz2026.workshop.freeipa.org
+ 0 s:C=US, O=Unspecified, CN=web, emailAddress=root@web.e2.pki.example.com
+   i:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.pki.example.com
    a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
    v:NotBefore: Jan  8 01:31:02 2026 GMT; NotAfter: Jan  8 01:31:02 2027 GMT
- 1 s:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.cz2026.workshop.freeipa.org
-   i:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.cz2026.workshop.freeipa.org
+ 1 s:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.pki.example.com
+   i:C=US, O=Unspecified, OU=ca-2871753292585466680, CN=web, emailAddress=root@web.e2.pki.example.com
    a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
    v:NotBefore: Jan  8 01:31:02 2026 GMT; NotAfter: Jan  8 01:31:02 2027 GMT
 ---
@@ -102,7 +102,7 @@ EOF</code></pre>
 <pre class="command web"><code>sudo tail -f /var/log/httpd/error_log</code></pre>
 <p>The message that indicates success will look like:</p>
 <pre class="output"><code>[Thu Jan 08 06:44:32.452115 2026] [md:notice] [pid 4358:tid 4361]
-AH10059: The Managed Domain web.e2.cz2026.workshop.freeipa.org has been setup
+AH10059: The Managed Domain web.e2.pki.example.com has been setup
 and changes will be activated on next (graceful) server restart.</code></pre>
 <p>Now perform a graceful restart to pick up the new certificate:</p>
 <pre class="command web"><code>sudo systemctl reload httpd</code></pre>
