@@ -33,7 +33,8 @@ generate keys and create CSRs.</p>
 <div class="note">
 <p>All steps in this module are to be performed on <code>client.$DOMAIN</code>.
 SSH into this machine now:</p>
-<pre class="command no-copy"><code>ssh -i path/to/key.pem fedora@client.e$N.cz2026.workshop.freeipa.org</code></pre>
+<pre class="command no-copy"><code>ssh -i path/to/key.pem \
+    fedora@client.e$N.cz2026.workshop.freeipa.org</code></pre>
 </div>
 <h2 id="service-csr-with-rsa-key">Service CSR with RSA key <a href="#service-csr-with-rsa-key" class="section">§</a></h2>
 <p>Let’s prepare a CSR suitable for a network service, such as an HTTP
